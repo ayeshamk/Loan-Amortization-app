@@ -43,7 +43,10 @@ def create_loan_for_user(
     return loan_function.create_loan(db=db, loan=loan, user_id=user_id)
 
 
-
+@app.get("/loans/{user_id}", response_model=List[schemas.Loan])
+def read_loan(user_id:int,db: Session = Depends(get_db)):
+    loan = loan_function.get_loans(db, user_id)
+    return loan
 
 if __name__ == '__main__':
     uvicorn.run(app, port=8000)
