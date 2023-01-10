@@ -5,7 +5,7 @@ import json
 from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy.orm import Session
 
-from sql_loan import schemas, user_functions, models
+from sql_loan import schemas, user_functions, models,loan_function
 from sql_loan.database import SessionLocal, engine
 
 models.Base.metadata.create_all(bind=engine)
@@ -34,6 +34,15 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 def read_users(db: Session = Depends(get_db)):
     users = user_functions.get_user(db)
     return users
+
+
+
+@app.post("/users/{user_id}/loans/", response_model=schemas.Loan)
+def create_loan_for_user(
+        user_id: int, loan: schemas.LoanCreate, db: Session = Depends(get_db)):
+    return loan_function.create_loan(db=db, loan=loan, user_id=user_id)
+
+
 
 
 if __name__ == '__main__':
