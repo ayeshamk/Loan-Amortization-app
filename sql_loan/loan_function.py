@@ -2,16 +2,18 @@ from sqlalchemy.orm import Session
 import numpy as np
 from . import models, schemas
 from fastapi import HTTPException
+import json
 
 
 def get_loans(db: Session, user_id: int):
-    return db.query(models.Loan).filter(models.Loan.owner_id == user_id).all()
+    return db.query(models.Loan).filter(models.Loan.owner).filter(models.User.id == user_id).all()
 
 
 def get_loan_summary(db: Session, json_data):
     try:
-        loan_record = db.query(models.Loan).filter(models.Loan.owner_id == json_data.get("user_id")).all()[
-            (json_data.get('loan_id') - 1)]
+        loan_record = \
+            db.query(models.Loan).filter(models.Loan.owner).filter(models.User.id == json_data.get('user_id')).all()[
+                (json_data.get('loan_id') - 1)]
     except:
         raise HTTPException(status_code=404, detail="Item not found")
 
@@ -31,8 +33,9 @@ def get_loan_summary(db: Session, json_data):
 
 def loan_schedule(db: Session, json_data):
     try:
-        loan_record = db.query(models.Loan).filter(models.Loan.owner_id == json_data.get("user_id")).all()[
-            (json_data.get('loan_id') - 1)]
+        loan_record = \
+            db.query(models.Loan).filter(models.Loan.owner).filter(models.User.id == json_data.get('user_id')).all()[
+                (json_data.get('loan_id') - 1)]
     except:
         raise HTTPException(status_code=404, detail="Item not found")
 
@@ -48,12 +51,15 @@ def loan_schedule(db: Session, json_data):
         new_item = dict()
         new_item['month'] = amount + 1
         if total_amount - (principle_amount - interest_amount_pay) > 0:
-            new_item['Remaining_Balance'] = total_amount - (principle_amount - interest_amount_pay)
+            remainig_amount = total_amount - (principle_amount - interest_amount_pay)
+            new_item['Remaining_Balance'] = "%.2f" % round(remainig_amount, 2)
         else:
             new_item['Remaining_Balance'] = 0
+            remainig_amount = 0
         new_item['Monthly_Payment'] = principle_amount - interest_amount_pay
-        interest_amount_pay = abs(np.ipmt(interest_rate_per_month, 1, loanTerm_per_year, new_item['Remaining_Balance']))
-        total_amount = new_item['Remaining_Balance']
+        new_item['Monthly_Payment'] = "%.2f" % round(new_item['Monthly_Payment'], 2)
+        interest_amount_pay = abs(np.ipmt(interest_rate_per_month, 1, loanTerm_per_year, remainig_amount))
+        total_amount = remainig_amount
         main_list.append(new_item)
     return main_list
 
@@ -61,9 +67,20 @@ def loan_schedule(db: Session, json_data):
 def create_loan(db: Session, loan: schemas.LoanCreate, user_id: int):
     if db.query(models.User).filter(models.User.id == user_id).first() is None:
         raise HTTPException(status_code=404, detail="User not found")
-
-    db_loan = models.Loan(**loan.dict(), owner_id=user_id)
+    db_loan = models.Loan(**loan.dict())
     db.add(db_loan)
+    db_loan.owner = [db.query(models.User).filter(models.User.id == user_id).first()]
     db.commit()
     db.refresh(db_loan)
     return db_loan
+
+
+def share_loan(db: Session, loan, user_id: int):
+    if db.query(models.User).filter(models.User.id == user_id).first() is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    if not [v for v in db.query(models.loan_user_table).all() if (user_id, loan) == v]:
+        obj = models.loan_user_table.insert().values(user_id=user_id, loan_id=loan)
+        db.execute(obj)
+        db.commit()
+        return True
+    return False

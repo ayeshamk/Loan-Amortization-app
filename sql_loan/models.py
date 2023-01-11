@@ -1,7 +1,14 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Table
 from sqlalchemy.orm import relationship
 
 from .database import Base
+
+loan_user_table = Table(
+    "user_loan",
+    Base.metadata,
+    Column("user_id", Integer, ForeignKey("users.id"), primary_key=True),
+    Column("loan_id", Integer, ForeignKey("loans.id"), primary_key=True),
+)
 
 
 class User(Base):
@@ -13,7 +20,7 @@ class User(Base):
     name = Column(String)
     is_active = Column(Boolean, default=True)
 
-    loans = relationship("Loan", back_populates="owner")
+    loans = relationship("Loan", back_populates="owner", secondary=loan_user_table)
 
 
 class Loan(Base):
@@ -23,6 +30,6 @@ class Loan(Base):
     amount = Column(Integer, index=True)
     annualInterestRate = Column(Integer, index=True)
     loanTerm = Column(Integer, index=True)
-    owner_id = Column(Integer, ForeignKey("users.id"))
+    # owner_id = Column(Integer, ForeignKey("users.id"))
 
-    owner = relationship("User", back_populates="loans")
+    owner = relationship("User", back_populates="loans", secondary=loan_user_table)
