@@ -1,7 +1,6 @@
 import uvicorn
 from typing import List
-import json
-from fastapi import Depends, FastAPI, HTTPException,Request
+from fastapi import Depends, FastAPI, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from sql_loan import schemas, user_functions, models, loan_function
@@ -42,10 +41,17 @@ def create_loan_for_user(
 
 
 @app.post("/loan_summary/")
-async def get_loan_summary(request:Request, db: Session = Depends(get_db)):
+async def get_loan_summary(request: Request, db: Session = Depends(get_db)):
     json_data = await request.json()
     summary = loan_function.get_loan_summary(db, json_data)
     return summary
+
+
+@app.post("/loan_schedule/")
+async def get_loan_schedule(request: Request, db: Session = Depends(get_db)):
+    json_data = await request.json()
+    schedule = loan_function.loan_schedule(db, json_data)
+    return schedule
 
 
 @app.get("/loans/{user_id}", response_model=List[schemas.Loan])
