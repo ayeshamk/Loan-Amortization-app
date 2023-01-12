@@ -35,16 +35,14 @@ def create_loan_for_user(
 
 
 @app.post("/loan_summary/")
-async def get_loan_summary(request: Request, db: Session = Depends(get_db)):
-    json_data = await request.json()
-    summary = loan_function.get_loan_summary(db, json_data)
+def get_loan_summary(request: Request,loan:schemas.LoanSummary, db: Session = Depends(get_db)):
+    summary = loan_function.get_loan_summary(db, loan)
     return summary
 
 
 @app.post("/loan_schedule/")
-async def get_loan_schedule(request: Request, db: Session = Depends(get_db)):
-    json_data = await request.json()
-    schedule = loan_function.loan_schedule(db, json_data)
+def get_loan_schedule(loan: schemas.LoanSchedule, db: Session = Depends(get_db)):
+    schedule = loan_function.loan_schedule(db, loan)
     return schedule
 
 
@@ -55,16 +53,15 @@ def read_loan(user_id: int, db: Session = Depends(get_db)):
 
 
 @app.post("/loanshare/")
-async def user_loan_share(request: Request, db: Session = Depends(get_db)):
-    json_data = await request.json()
+def user_loan_share(json_data: schemas.ShareLoan, db: Session = Depends(get_db)):
     try:
         loan_id = \
-            db.query(models.Loan).filter(models.Loan.owner).filter(models.User.id == json_data.get('sender_id')).all()[
-                (json_data.get('loan_id') - 1)].id
+            db.query(models.Loan).filter(models.Loan.owner).filter(models.User.id == json_data.sender_id).all()[
+                (json_data.loan_id - 1)].id
     except HTTPException:
         raise HTTPException(status_code=404, detail="Item not found")
 
-    return loan_function.share_loan(db=db, loan=loan_id, user_id=json_data['receiver_id'])
+    return loan_function.share_loan(db=db, loan=loan_id, user_id=json_data.receiver_id)
 
 
 if __name__ == '__main__':

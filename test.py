@@ -9,9 +9,17 @@ def test_create_user():
     assert response.status_code == 200
 
 
-def test_create_loan():
+
+
+def test_create_loan1():
     response = client.post("/users/3/loans/", json={"amount": 18000, "annualInterestRate": 6, "loanTerm": 10})
     assert response.status_code == 200
+
+
+def test_create_loan2():
+    response = client.post("/users/55/loans/", json={"amount": 18000, "annualInterestRate": 6, "loanTerm": 10})
+    assert response.status_code == 200
+
 
 
 def get_summary_report():

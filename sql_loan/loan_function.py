@@ -12,8 +12,8 @@ def get_loans(db: Session, user_id: int):
 def get_loan_summary(db: Session, json_data):
     try:
         loan_record = \
-            db.query(models.Loan).filter(models.Loan.owner).filter(models.User.id == json_data.get('user_id')).all()[
-                (json_data.get('loan_id') - 1)]
+            db.query(models.Loan).filter(models.Loan.owner).filter(models.User.id == json_data.user_id).all()[
+                (json_data.loan_id - 1)]
     except:
         raise HTTPException(status_code=404, detail="Item not found")
 
@@ -23,19 +23,19 @@ def get_loan_summary(db: Session, json_data):
     loanTerm_per_year = (loan_record.loanTerm / 12) * 12
     new_item = dict()
     new_item['Principal_Balance'] = abs(
-        np.ppmt(interest_rate_per_month, json_data.get('month'), loanTerm_per_year, total_amount))
+        np.ppmt(interest_rate_per_month, json_data.month, loanTerm_per_year, total_amount))
     new_item['interest_already_paid'] = abs(np.cumsum(
-        np.ipmt(interest_rate_per_month, range(1, json_data.get('month') + 1), loanTerm_per_year, total_amount))[-1])
+        np.ipmt(interest_rate_per_month, range(1, json_data.month + 1), loanTerm_per_year, total_amount))[-1])
     new_item['principal_amount_already_paid'] = abs(np.cumsum(
-        np.ppmt(interest_rate_per_month, range(1, json_data.get('month') + 1), loanTerm_per_year, total_amount))[-1])
+        np.ppmt(interest_rate_per_month, range(1, json_data.month + 1), loanTerm_per_year, total_amount))[-1])
     return new_item
 
 
 def loan_schedule(db: Session, json_data):
     try:
         loan_record = \
-            db.query(models.Loan).filter(models.Loan.owner).filter(models.User.id == json_data.get('user_id')).all()[
-                (json_data.get('loan_id') - 1)]
+            db.query(models.Loan).filter(models.Loan.owner).filter(models.User.id == json_data.user_id).all()[
+                (json_data.loan_id - 1)]
     except:
         raise HTTPException(status_code=404, detail="Item not found")
 

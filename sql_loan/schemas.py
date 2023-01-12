@@ -37,3 +37,23 @@ class User(UserBase):
 
     class Config:
         orm_mode = True
+
+
+class LoanSummary(BaseModel):
+    user_id: int
+    loan_id: int
+    month: int
+
+    class Config:
+        orm_mode = True
+
+
+class LoanSchedule(BaseModel):
+    user_id: int
+    loan_id: int
+
+
+class ShareLoan(BaseModel):
+    sender_id: int
+    receiver_id: int
+    loan_id: int
