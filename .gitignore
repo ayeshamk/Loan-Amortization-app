@@ -1,6 +1,8 @@
 myvenv/*
-myevenv/*
 .vscode/*
 __pycache__/*
-*/__pycache__/*
+sql_loan/__pycache__/*
 .idea/*
+.pytest_cache/*
+test/.pytest_cache/*
+test/__pycache__/*

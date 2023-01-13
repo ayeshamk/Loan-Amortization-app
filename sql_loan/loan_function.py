@@ -17,6 +17,10 @@ def get_loan_summary(db: Session, json_data):
     except:
         raise HTTPException(status_code=404, detail="Item not found")
 
+    if json_data.month <=loan_record.loanTerm:
+        pass
+    else:
+        raise HTTPException(status_code=404, detail="Enter Month is not valid")
     total_amount = loan_record.amount
     interest_rate = loan_record.annualInterestRate / 100
     interest_rate_per_month = interest_rate / 12

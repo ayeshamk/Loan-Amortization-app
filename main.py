@@ -55,10 +55,9 @@ def read_loan(user_id: int, db: Session = Depends(get_db)):
 @app.post("/loanshare/")
 def user_loan_share(json_data: schemas.ShareLoan, db: Session = Depends(get_db)):
     try:
-        loan_id = \
-            db.query(models.Loan).filter(models.Loan.owner).filter(models.User.id == json_data.sender_id).all()[
+        loan_id = db.query(models.Loan).filter(models.Loan.owner).filter(models.User.id == json_data.sender_id).all()[
                 (json_data.loan_id - 1)].id
-    except HTTPException:
+    except Exception as e:
         raise HTTPException(status_code=404, detail="Item not found")
 
     return loan_function.share_loan(db=db, loan=loan_id, user_id=json_data.receiver_id)
